@@ -1,0 +1,24 @@
+main:
+    params: [args]
+    steps:
+        - init:
+              assign:
+                  - url: ${args.url}
+                  - postData: ${args.postData}
+        - postUserDataWithRetry:
+              try:
+                  call: http.post
+                  args:
+                      url: ${url}
+                      body: ${postData}
+                      timeout: 1800
+                  result: postResult
+              retry:
+                  predicate: ${http.default_retry_predicate}
+                  max_retries: ${args.maxRetries}
+                  backoff:
+                      initial_delay: ${args.sleepTime}
+                      max_delay: ${args.maxSleep}
+                      multiplier: 2
+        - handleSuccess:
+              return: 'Operation successfully completed.'

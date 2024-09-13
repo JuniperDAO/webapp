@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+import os
+import pprint
+
+for k in sorted(os.environ.keys()):
+    lv = len(os.environ[k])
+    v = ("*" * lv) if lv < 40 else f"*({lv})"
+    print(f"ENV {k}={v}")

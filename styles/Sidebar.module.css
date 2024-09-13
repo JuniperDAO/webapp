@@ -1,0 +1,135 @@
+.container {
+    height: 100dvh;
+    width: 240px;
+    min-width: 240px;
+    border-right: 1px solid #f3f3f3;
+    position: sticky;
+    top: 0;
+}
+
+.logo {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    color: #588540;
+}
+
+.logo img {
+    width: 60px !important;
+    height: auto !important;
+}
+
+.ctas {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-inline: 24px;
+}
+
+.ctas button {
+    border: none;
+    outline: none;
+    padding: 10px 0px;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #f3f3f3;
+}
+
+.ctas button:first-child {
+    background-color: #678552;
+    color: white;
+}
+
+.ctas button:first-child:hover {
+    background-color: #8aa07b;
+}
+
+.ctas button:first-child:active {
+    scale: 0.95;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-inline: 24px;
+    margin-top: 40px;
+}
+
+.menu a {
+    text-decoration: none;
+}
+
+.menu span {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.menu span:hover > svg {
+    color: black;
+}
+
+.menu span svg {
+    font-size: 24px;
+    color: #5e5e5e;
+}
+
+.menu span p {
+    color: #5e5e5e;
+}
+
+.menu span:hover > p {
+    color: #000000;
+    font-weight: 500;
+}
+
+@media (width < 720px) {
+    .container {
+        height: 80px;
+        width: 100%;
+        border-top: 1px solid #f3f3f3;
+        background-color: white;
+        border-right: none;
+        bottom: 0;
+        top: initial;
+        display: flex;
+        align-items: center;
+    }
+
+    .logo,
+    .ctas {
+        display: none;
+    }
+
+    .menu {
+        margin-top: 0;
+        width: 100%;
+        gap: 0;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 0;
+    }
+
+    .menu a {
+        flex: 1;
+        text-decoration: none;
+    }
+
+    .menu span {
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+    }
+
+    .menu span p {
+        display: none;
+        font-size: 12px;
+    }
+}

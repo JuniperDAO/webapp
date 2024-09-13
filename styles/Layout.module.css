@@ -1,0 +1,68 @@
+.container {
+    display: flex;
+    width: 100%;
+}
+
+.background {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.overlay {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(75, 84, 67, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.content {
+    display: flex;
+    width: 100%;
+    z-index: 1;
+}
+
+.main {
+    width: 100%;
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 0 4rem;
+}
+
+.children {
+    display: flex;
+    width: 100%;
+}
+
+@media (width < 720px) {
+    /* n.b., rearranged the background image so this makes sense on mobile */
+
+    /* .background {
+        display: none !important;
+    } */
+
+    .overlay {
+        display: none;
+    }
+
+    .content {
+        flex-direction: column-reverse;
+    }
+
+    .main {
+        padding: 0;
+        height: 100%;
+    }
+
+    .children {
+        height: max-content;
+        min-height: 100%;
+    }
+}

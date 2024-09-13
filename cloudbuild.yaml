@@ -1,0 +1,58 @@
+options:
+    substitutionOption: ALLOW_LOOSE
+    dynamic_substitutions: true
+
+substitutions:
+    _TRIGGER_ID: 2efc2247-4b93-4f9e-b52d-3d34337ba261
+    _GCR_HOSTNAME: us.gcr.io
+    _DEPLOY_REGION: us-central1
+    _SERVICE_ACCOUNT: 'appserv-prod@tungstenfi.iam.gserviceaccount.com'
+    _VPC_CONNECTOR: runapps-default-default
+    _ENV_VARS: 'BRANCH_NAME=${BRANCH_NAME},SHORT_SHA=${SHORT_SHA},INSTANCE_UNIX_SOCKET=/cloudsql/tungstenfi:us-central1:db-${BRANCH_NAME}'
+    _IMAGE_ID: '${_GCR_HOSTNAME}/${PROJECT_ID}/juniper-app'
+
+steps:
+    # static file sync to CDN needs to happen from within dockerfile b/c they aren't built yet!
+    - id: docker
+      name: gcr.io/cloud-builders/docker
+      entrypoint: '/bin/bash'
+      args:
+          - ops/cloudbuild-docker
+      env:
+          - BRANCH_NAME=${BRANCH_NAME}
+          - SHORT_SHA=${SHORT_SHA}
+          - IMAGE_ID=${_IMAGE_ID}
+    - id: deploy-web
+      name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+      waitFor: ['docker']
+      entrypoint: 'bash'
+      # https://linear.app/tungsten/issue/TUN-247/exceeded-maximum-of-100-connections-per-instance-tungstenfius
+      # max dbconns/container is 100
+      args:
+          - '-c'
+          - >
+              gcloud run deploy $(ops/env-cloudbuild service_name)
+              --quiet --port=80 --ingress=all --cpu=1 --memory=2Gi --timeout=3600
+              --concurrency=8 --platform=managed
+              --image=${_IMAGE_ID}:${SHORT_SHA}
+              --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$SHORT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+              --region=${_DEPLOY_REGION}
+              --vpc-connector=${_VPC_CONNECTOR}
+              --service-account=${_SERVICE_ACCOUNT}
+              --set-env-vars=${_ENV_VARS}
+              --add-cloudsql-instances=tungstenfi:us-central1:$(ops/env-cloudbuild db_name)
+      env:
+          - BRANCH_NAME=${BRANCH_NAME}
+    - id: build-helper
+      waitFor: ['-']
+      name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+      entrypoint: 'bash'
+      env:
+          - _DEPLOY_REGION=${_DEPLOY_REGION}
+          - BRANCH_NAME=${BRANCH_NAME}
+      args:
+          - ops/cloudbuild-helper.sh
+tags:
+    - gcp-cloud-build-deploy-cloud-run
+    - gcp-cloud-build-deploy-cloud-run-managed
+    - 'juniper-app'

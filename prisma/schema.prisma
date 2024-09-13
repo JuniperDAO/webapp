@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_PRISMA_URL")
+}
+
+model JuniperUser {
+  id               String            @id @default(uuid())
+  createdAt        DateTime          @default(now())
+  did              String?           @unique
+  email            String?           @unique
+  eoaWalletAddress String?           @unique
+  name             String?
+  phoneNumber      String?
+  deletedAt        DateTime?
+  updatedAt        DateTime?
+  referredBy       String?
+  referralCode     String?           @unique
+  // relations
+  cardAccounts     CardAccount[]
+  smartWallets     UserSmartWallet[]
+  userBridges      UserBridge[]
+  plaidItems       UserPlaidItem[]
+  bankAccounts     UserBankAccount[]
+  intents          UserIntent[]
+}
+
+model UserPlaidItem {
+  itemId      String      @id
+  accessToken String
+  requestId   String
+  accounts    Json?
+  numbers     Json?
+  identities  Json?
+  // ...
+  ownerId     String
+  owner       JuniperUser @relation(fields: [ownerId], references: [id])
+}
+
+model UserBankAccount {
+  plaidAccountId String  @id @unique
+  plaidItemId    String
+  account        String
+  routing        String
+  wireRouting    String?
+  mask           String?
+  name           String
+  officialName   String?
+  type           String
+  subtype        String
+
+  ownerId String
+  owner   JuniperUser @relation(fields: [ownerId], references: [id])
+}
+
+model UserBridge {
+  id                String      @id // this is also kycLinkId in the client
+  fullName          String?
+  email             String      @unique
+  type              String // "individual", // or "business"
+  kycLink           String // "persona.com/blah",
+  tosLink           String // "bridge.xyz/tos?blah=blah",
+  kycStatus         String // "approved", // or "manual_review", "approved" or "rejected"
+  tosStatus         String // "approved", // or "approved"
+  createdAt         DateTime // "Wed, 14 Jun 2023 20:44:57.375900000 UTC +00:00",
+  customerId        String? // nil // will have a uuid when both kyc_status and tos_status are approved
+  // intermediate state data
+  signedAgreementId String?
+  // ...
+  ownerId           String
+  owner             JuniperUser @relation(fields: [ownerId], references: [id])
+}
+
+model UserSmartWallet {
+  id                         String      @id @default(uuid())
+  network                    Network
+  createdAt                  DateTime    @default(now())
+  smartContractWalletAddress String
+  sessionKey                 String
+  sessionKeyUpdatedAt        DateTime?
+  ownerId                    String
+  deletedAt                  DateTime?
+  updatedAt                  DateTime    @default(now())
+  owner                      JuniperUser @relation(fields: [ownerId], references: [id])
+  version                    Int?        @default(0)
+
+  @@unique([network, smartContractWalletAddress])
+}
+
+model CardAccount {
+  id                   String       @id @default(uuid())
+  provider             CardProvider
+  // case when provider = coinbase
+  apiAccessToken       String?
+  apiRefreshToken      String?
+  // case when provider = bridge
+  externalAccountId    String?
+  customerId           String?
+  liquidationAddressId String?
+  address              String?
+  name                 String? // may be null, always have a default
+  last4                String? // may be null, always have a default
+  bankName             String?
+  plaidAccessToken     String?
+  plaidItemId          String?
+  //
+  updatedAt            DateTime     @default(now())
+  ownerId              String
+  deletedAt            DateTime?
+  spendingPowerCents   Int          @default(0)
+  owner                JuniperUser  @relation(fields: [ownerId], references: [id])
+
+  @@unique([customerId, externalAccountId])
+  @@unique([ownerId, name])
+  @@unique([ownerId, address])
+}
+
+model UserIntent {
+  id          String      @id @default(uuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+  // startedAt   DateTime? // considered this, but this is really for the crash case. using a redis lock instead
+  completedAt DateTime?
+  ownerId     String
+  owner       JuniperUser @relation(fields: [ownerId], references: [id])
+  intentType  Intent
+  intentData  Json?
+}
+
+model UserReferralBonus {
+  id          String      @id @default(uuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+  completedAt DateTime?
+  ownerId     String // whom to pay
+  referredId  String // paid for
+  bonusData   Json?
+
+  @@unique([ownerId, referredId])
+}
+
+model migrations {
+  id      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created DateTime? @default(now()) @db.Timestamp(6)
+  name    String
+  size    Int
+  ctime   DateTime  @db.Timestamp(6)
+  mtime   DateTime  @db.Timestamp(6)
+  sha256  String
+}
+
+enum Intent {
+  borrow_and_send
+  deposit
+  repay
+  withdraw
+}
+
+enum CardProvider {
+  coinbase
+  crypto_dot_com
+  bridge
+  wallet
+  kraken
+  binance
+  bybit
+  okx
+  gate_io
+  kucoin
+  other_exchange
+}
+
+enum Network {
+  mainnet
+  optimism
+  goerli
+}

@@ -1,0 +1,3 @@
+#!/bin/bash
+export PATH=$PATH:./node_modules/.bin:/opt/homebrew/bin:$HOME/Library/pnpm
+pnpm dev-build

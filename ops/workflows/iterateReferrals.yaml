@@ -1,0 +1,36 @@
+main:
+    params: [args]
+    steps:
+        - init:
+              assign:
+                  - base_uri: ${args.base_uri}
+        - getUnpaidReferrals:
+              call: http.get
+              args:
+                  url: ${base_uri + "/api/workflows/referrals/unpaid"}
+              result: unpaid
+        - log:
+              call: sys.log
+              args:
+                  data: ${unpaid}
+        - iterateReferrals:
+              for:
+                  value: referral
+                  in: ${unpaid.body.results}
+                  steps:
+                      - payReferral:
+                            try:
+                                call: http.post
+                                args:
+                                    url: ${base_uri + "/api/workflows/referrals/pay"}
+                                    body: ${referral}
+                                result: payResult
+                            except:
+                                as: error
+                                steps:
+                                    - logError:
+                                          call: sys.log
+                                          args:
+                                              data: ${error}
+        - whee:
+              return: 'Operation successfully completed.'

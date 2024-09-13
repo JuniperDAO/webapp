@@ -1,0 +1,18 @@
+#!/bin/bash
+set -x
+
+docker pull ${IMAGE_ID}:latest
+docker build -f Dockerfile --network=cloudbuild \
+	-t ${IMAGE_ID}:${SHORT_SHA} \
+	-t ${IMAGE_ID}:latest \
+	--cache-from ${IMAGE_ID}:latest \
+	--build-arg=BRANCH_NAME=${BRANCH_NAME} \
+    --build-arg=BUCKET_NAME=$(ops/env-cloudbuild bucket_name) \
+	--build-arg=CACHE_BUCKET_NAME=juniper-nextjs-cache \
+	--build-arg=SECRET_NAME=$(ops/env-cloudbuild secret_name) \
+	--build-arg=BRANCH_NAME=${BRANCH_NAME} \
+	--build-arg=SHORT_SHA=${SHORT_SHA} \
+	.
+
+docker push ${IMAGE_ID}:${SHORT_SHA}
+docker push ${IMAGE_ID}:latest
