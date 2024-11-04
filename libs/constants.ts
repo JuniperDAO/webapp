@@ -111,21 +111,26 @@ export const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN
 export const NEXT_PUBLIC_CRISP_WEBSITE_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID
 
 export function staticURL(path) {
-    const short_sha = process.env.NEXT_PUBLIC_SHORT_SHA
-    let bucket_name = process.env.NEXT_PUBLIC_BRANCH_NAME
+    if (false) {
+        // old GCP deployment stuff
+        const short_sha = process.env.NEXT_PUBLIC_SHORT_SHA
+        let bucket_name = process.env.NEXT_PUBLIC_BRANCH_NAME
 
-    if (!path.startsWith('/')) {
-        path = '/' + path
-    }
-    if (!bucket_name || !short_sha) {
-        throw new Error(`config error: bucket_name: ${bucket_name} short_sha: ${short_sha}`)
+        if (!path.startsWith('/')) {
+            path = '/' + path
+        }
+        if (!bucket_name || !short_sha) {
+            throw new Error(`config error: bucket_name: ${bucket_name} short_sha: ${short_sha}`)
+        }
+
+        if (bucket_name.includes('/')) {
+            bucket_name = bucket_name.split('/')[0]
+        }
+
+        return 'https://storage.googleapis.com/juniper-' + bucket_name + '/' + short_sha + path
     }
 
-    if (bucket_name.includes('/')) {
-        bucket_name = bucket_name.split('/')[0]
-    }
-
-    return 'https://storage.googleapis.com/juniper-' + bucket_name + '/' + short_sha + path
+    return path
 }
 
 export const referralURL = (code) => {
