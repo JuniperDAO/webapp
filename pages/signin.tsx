@@ -30,7 +30,7 @@ export default function SignIn() {
     }, [ready, authenticated, login])
 
     return (
-        <Layout backgroundImageUrl={staticURL('/public/images/background.png')}>
+        <Layout backgroundImageUrl={staticURL('/images/background.png')}>
             <div className={styles.container}></div>
         </Layout>
     )

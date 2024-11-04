@@ -162,7 +162,7 @@ function WaitForRepayDeposit({ onClose, receiveAddress }) {
                             bgColor="transparent"
                             level="Q"
                             // imageSettings={{
-                            //     src: staticURL('/public/images/optimism.png'),
+                            //     src: staticURL('/images/optimism.png'),
                             //     height: 40,
                             //     width: 40,
                             //     excavate: true,
@@ -203,7 +203,7 @@ function Success({ onClose }) {
             variants={page}
             className={`modal ${styles.container} ${inter.className}`}>
             <div className={styles.content}>
-                <img width={200} height={200} src={staticURL('/public/images/otherCard.png')} alt="coinbase" />
+                <img width={200} height={200} src={staticURL('/images/otherCard.png')} alt="coinbase" />
 
                 <h3 className="text-2xl spectral mb-1 mt-auto md:mt-2">Repayment Scheduled</h3>
 

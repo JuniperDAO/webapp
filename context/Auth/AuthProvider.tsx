@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
 
     let privyConfig = {
         appearance: {
-            logo: staticURL('/public/images/juniper-logo-wide.png'),
+            logo: staticURL('/images/juniper-logo-wide.png'),
             showWalletLoginFirst: false,
             // showWalletLoginFirst: true,
             // theme: '#FFF7E7', // needs a new logo png if you want this
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
     }
 
     if (!IS_PRODUCTION) {
-        privyConfig.appearance.logo = staticURL('/public/images/juniper-logo-wide-dev.png')
+        privyConfig.appearance.logo = staticURL('/images/juniper-logo-wide-dev.png')
         privyConfig.loginMethods = ['wallet', 'apple', 'email', 'google']
     }
 

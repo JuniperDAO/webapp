@@ -56,7 +56,7 @@ function CreditUsageChart({ percentage, maxLTVPercent, colorClass }) {
 
     return (
         <div className={styles.chart}>
-            <img src={staticURL('/public/images/creditChart.png')} width={250} height={135} alt="Chart" />
+            <img src={staticURL('/images/creditChart.png')} width={250} height={135} alt="Chart" />
             <div style={{ rotate }} className={`${styles.circle} ${styles[colorClass]}`} />
         </div>
     )
