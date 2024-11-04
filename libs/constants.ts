@@ -4,7 +4,7 @@
 import { AaveV3Optimism } from '@bgd-labs/aave-address-book'
 import { BigNumber } from 'ethers'
 
-export const IS_PRODUCTION = process.env.NEXT_PUBLIC_BRANCH_NAME === 'main' && process.env.NODE_ENV === 'production' ? true : false
+export const IS_PRODUCTION = process.env.VERCEL_ENV === 'production' ? true : false
 
 // this is gonna be very fun when there are migrations required
 export const SMART_WALLET_VERSION = 3
