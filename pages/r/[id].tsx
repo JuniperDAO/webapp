@@ -49,7 +49,7 @@ export default function Refer() {
         <Layout>
             <div className={styles.container}>
                 <motion.div initial="initial" animate="animate" exit="exit" variants={page} className={styles.content}>
-                    <img className="m-0" src={staticURL('/public/images/juniper.png')} />
+                    <img className="m-0" src={staticURL('/images/juniper.png')} />
 
                     {referralError && <p className="text-sm max-w-sm mx-auto text-dark">{referralError}</p>}
 

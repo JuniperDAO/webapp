@@ -13,7 +13,7 @@ export const getCardAccountDisplayInfo = (cardAccount: CardAccount) => {
     if (cardAccount.provider === 'coinbase') {
         return {
             name: 'Coinbase',
-            image: staticURL('/public/images/coinbase-card.png'),
+            image: staticURL('/images/coinbase-card.png'),
             address: cardAccount.address,
             isFiat: false,
         }
@@ -24,21 +24,21 @@ export const getCardAccountDisplayInfo = (cardAccount: CardAccount) => {
         }
         return {
             name: name,
-            image: staticURL('/public/images/bridge-card.png'),
+            image: staticURL('/images/bridge-card.png'),
             address: cardAccount.address,
             isFiat: true,
         }
     } else if (cardAccount.provider === 'wallet') {
         return {
             name: cardAccount.name,
-            image: staticURL('/public/images/wallet-card.png'),
+            image: staticURL('/images/wallet-card.png'),
             address: cardAccount.address,
             isFiat: false,
         }
     } else {
         return {
             name: cardAccount.provider.charAt(0).toUpperCase() + cardAccount.provider.slice(1),
-            image: staticURL('/public/images/generic-card.png'),
+            image: staticURL('/images/generic-card.png'),
             address: cardAccount.address,
             isFiat: false,
         }

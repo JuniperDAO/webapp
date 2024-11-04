@@ -130,7 +130,7 @@ export default function FundAccount() {
                                     bgColor="transparent"
                                     level="Q"
                                     // imageSettings={{
-                                    //     src: staticURL('/public/images/optimism.png'),
+                                    //     src: staticURL('/images/optimism.png'),
                                     //     height: 40,
                                     //     width: 40,
                                     //     excavate: true,

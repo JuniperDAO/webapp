@@ -55,8 +55,8 @@ export default function Settings() {
     return (
         <Layout>
             <div className={styles.container}>
-                <img src={staticURL('/public/images/fullLeaf.png')} width={1512} height={450} alt="leaf" className="full-leaf hidden md:block" />
-                <img width={200} height={174} src={staticURL('/public/images/rightLeaf.png')} alt="leaf" className="right-leaf md:hidden" />
+                <img src={staticURL('/images/fullLeaf.png')} width={1512} height={450} alt="leaf" className="full-leaf hidden md:block" />
+                <img width={200} height={174} src={staticURL('/images/rightLeaf.png')} alt="leaf" className="right-leaf md:hidden" />
                 <motion.div initial="initial" animate="animate" exit="exit" variants={header} className={styles.header}>
                     <div className="flex items-center w-full">
                         <IoIosArrowRoundBack className={styles.backIcon} size={32} onClick={() => router.back()} />
