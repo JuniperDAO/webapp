@@ -10,12 +10,11 @@
     },
     "scripts": {
         "build": "next build",
+        "_": "https://www.prisma.io/docs/orm/more/help-and-troubleshooting/help-articles/vercel-caching-issue",
+        "postinstall": "prisma generate",
         "start": "next start",
-        "dev": "./ops/dev.py",
-        "dev-build": "./ops/dev.py --build",
         "clean": "rm -rf node_modules pnpm-lock.yaml .next",
         "lint": "true || next lint",
-        "public-cdn": "(cd public && make)",
         "test": "jest"
     },
     "dependencies": {
