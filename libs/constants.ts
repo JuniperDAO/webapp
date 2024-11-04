@@ -32,9 +32,13 @@ Object.entries(AaveV3Optimism.ASSETS).map((x) => {
     if (x) {
         const [symbol, info] = x
 
-        AAVE_INTERNAL_ADDRESSES.push(info.A_TOKEN.toLowerCase())
-        AAVE_INTERNAL_ADDRESSES.push(info.V_TOKEN.toLowerCase())
-        AAVE_INTERNAL_ADDRESSES.push(info.S_TOKEN.toLowerCase())
+        if (info.A_TOKEN && info.V_TOKEN && info.S_TOKEN) {
+            AAVE_INTERNAL_ADDRESSES.push(info.A_TOKEN.toLowerCase())
+            AAVE_INTERNAL_ADDRESSES.push(info.V_TOKEN.toLowerCase())
+            AAVE_INTERNAL_ADDRESSES.push(info.S_TOKEN.toLowerCase())
+        } else {
+            console.error(`AAVE asset ${symbol} is missing an address: ${JSON.stringify(info)}`)
+        }
 
         if (AAVE_SUPPLIABLE_ERC20_SYMBOLS.indexOf(symbol) !== -1) {
             AAVE_SUPPLIABLE_ERC20_ADDRESSES.set(symbol, info.UNDERLYING.toLowerCase())

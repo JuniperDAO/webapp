@@ -149,7 +149,7 @@ if cli.build:
     )
     builder.wait()
 else:
-    update_deps()
+    # update_deps()
     cdn_sync()
     prisma_generate()
     run_and_wait_dev_server()
