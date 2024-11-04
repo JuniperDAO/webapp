@@ -71,14 +71,12 @@ export default function Settings() {
                         <p className={`text-sm text-[#959893]`}>Copy the private key for the EOA that owns your smart wallet.</p>
                     </div>
 
-                    {!IS_PRODUCTION && (
-                        <div className={`${styles.setting}`}>
-                            <p className={`${styles.clickable} text-lg text-dark spectral`} onClick={() => copySessionKey()}>
-                                Copy Session Key (developer mode)
-                            </p>
-                            <p className={`text-sm text-[#959893]`}>Copy the session key for your smart wallet.</p>
-                        </div>
-                    )}
+                    <div className={`${styles.setting}`}>
+                        <p className={`${styles.clickable} text-lg text-dark spectral`} onClick={() => copySessionKey()}>
+                            Copy Session Key (developer mode)
+                        </p>
+                        <p className={`text-sm text-[#959893]`}>Copy the session key for your smart wallet.</p>
+                    </div>
 
                     <div onClick={() => open('https://discord.gg/45w5XM6M47', '_blank')} className={`${styles.setting} ${styles.clickable}`}>
                         <p className="text-lg text-dark spectral">Join Discord</p>
