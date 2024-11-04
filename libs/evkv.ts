@@ -104,7 +104,7 @@ export const analytics = Analytics({
     app: app,
     debug: debug,
     plugins: [
-        InternalAnalytics({ app: app, debug: debug }),
+        // InternalAnalytics({ app: app, debug: debug }),
         googleAnalytics({
             measurementIds: ['G-LDD8J4YW4V'],
         }),
