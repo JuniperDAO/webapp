@@ -115,7 +115,7 @@ export default function Home() {
                         <button // was Link. links can't be disabled :)
                             disabled={true}
                             // href="/dashboard/fund-account"
-                            scroll={false}
+                            // scroll={false}
                             onClick={(ev) => {
                                 analytics.track('dashboardAddETHClicked')
                             }}>
