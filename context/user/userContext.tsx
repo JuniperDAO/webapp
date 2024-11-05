@@ -10,7 +10,7 @@ import { createAndSaveSessionSigner } from '@/libs/zerodev'
 import { analytics } from 'libs/evkv'
 import { POST } from '@/libs/request'
 import { log, redactKey } from '@/libs/util/log'
-import { safeStringify, SMART_WALLET_VERSION } from '@/libs/constants'
+import { safeStringify, IS_PRODUCTION, SMART_WALLET_VERSION } from '@/libs/constants'
 import { Crisp } from 'crisp-sdk-web'
 import * as Sentry from '@sentry/nextjs'
 import { formatAddress } from '@/libs/util/formatAddress'
@@ -94,6 +94,7 @@ function UserProvider({ children }) {
         const isSigningIn = router.route.includes('signin')
 
         log('current conditions', {
+            IS_PRODUCTION,
             zeroDevReady,
             privySmartAccountReady,
             isAuthenticated,
