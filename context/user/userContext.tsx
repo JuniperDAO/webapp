@@ -123,6 +123,12 @@ function UserProvider({ children }) {
             const _ = async () => {
                 const provider = await getEthereumProvider()
                 const address = await provider.getAddress()
+
+                if (!provider || !address) {
+                    log(`no provider (${provider}) or address (${address}), try again later?`)
+                    return
+                }
+
                 setSmartWalletProvider(provider)
                 setSmartWalletAddress(address)
                 log(`have smart wallet address: ${smartWalletAddress}, provider ${typeof provider}`)
