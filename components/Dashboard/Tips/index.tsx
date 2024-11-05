@@ -24,67 +24,46 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
     if (isLoading0 || isLoading1) return null
 
     // Make your first deposit tip
-    if (totalCollateralUSD === 0) {
-        analytics.track('firstDepositTipShown', { totalCollateralUSD })
+    if (totalCollateralUSD) {
         return (
             <div className={styles.tips}>
-                <p className="spectral text-2xl text-center text-dark">Make a deposit</p>
+                <p className="spectral text-2xl text-center text-dark">Withdraw Your Assets</p>
                 <div className="flex justify-center items-center">
                     <p className="mt-2 max-w-sm mx-auto text-light leading-tight">
-                        Add crypto assets to your wallet to earn staking yield and send money to your accounts.
+                        Effective Q4 2024, Juniper is in maintenance mode. You can withdraw your funds by clicking the button below.
                     </p>
                 </div>
                 <div className="flex justify-center items-center mt-4">
                     <button
                         onClick={() => {
-                            analytics.track('tipsDepositClicked')
-                            router.push('/dashboard/fund-account')
+                            router.push('/dashboard/withdraw')
                         }}
                         className="btn btn-primary">
-                        Deposit
+                            Withdraw
                     </button>
                 </div>
             </div>
         )
-    }
-
-    // Connect your account(s) tip
-    if (cardAccounts.length === 0) {
-        analytics.track('cardAccountsTipShown')
+    } else {
         return (
             <div className={styles.tips}>
-                <p className="spectral text-2xl text-center text-dark">Connect Your Accounts</p>
+                <p className="spectral text-2xl text-center text-dark">Juniper is in maintenance mode.</p>
                 <div className="flex justify-center items-center">
-                    <p className="mt-2 max-w-sm mx-auto text-light leading-tight">Connect your wallet or exchange account(s) to send money.</p>
+                    <p className="mt-2 max-w-sm mx-auto text-light leading-tight">
+                        Effective Q4 2024, Juniper is in maintenance mode. We appreciate your support for the past two years! Stay tuned for our next project.
+                    </p>
                 </div>
                 <div className="flex justify-center items-center mt-4">
                     <button
                         onClick={() => {
-                            analytics.track('tipsAddAccountClicked')
-                            onAddAccountClick()
+                            router.push('/dashboard/withdraw')
                         }}
                         className="btn btn-primary">
-                        Add Account
+                            Withdraw
                     </button>
                 </div>
             </div>
         )
-    }
-
-    // Set your referred by tip
-    if (totalCollateralUSD > 0 && !user?.referredBy && user?.createdAt) {
-        const createdAtDate = new Date(user.createdAt)
-        const oneWeekAgo = new Date()
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-
-        if (createdAtDate > oneWeekAgo) {
-            analytics.track('referredByTipShown', { createdAtDate })
-            return (
-                <div className={styles.tips}>
-                    <ReferredByView />
-                </div>
-            )
-        }
     }
 
     return null

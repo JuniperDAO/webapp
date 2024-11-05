@@ -112,9 +112,10 @@ export default function Home() {
                     <FundsAvailableSection />
 
                     <div className={styles.ctas}>
-                        <Link
-                            href="/dashboard/fund-account"
-                            scroll={false}
+                        <button // was Link. links can't be disabled :)
+                            disabled={true}
+                            // href="/dashboard/fund-account"
+                            // scroll={false}
                             onClick={(ev) => {
                                 analytics.track('dashboardAddETHClicked')
                             }}>
@@ -124,7 +125,7 @@ export default function Home() {
                                 </span>
                                 <p>Deposit</p>
                             </div>
-                        </Link>
+                        </button>
 
                         <button
                             disabled={maxSpendingPowerUSD < 1}
