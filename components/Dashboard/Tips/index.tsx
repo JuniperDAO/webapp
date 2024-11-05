@@ -10,6 +10,7 @@ import { staticURL } from '@/libs/constants'
 import { Crisp } from 'crisp-sdk-web'
 import Link from 'next/link'
 import { CardAccountContext } from '@/context/CardAccounts/CardAccounts'
+import WithdrawModal from '@/components/Modal/WithdrawModal'
 
 type TipsSectionProps = {
     onAddAccountClick: () => void
@@ -20,6 +21,7 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
     const { totalCollateralUSD, isLoading: isLoading0 } = useContext(creditLineContext)
     const { isLoading: isLoading1, cardAccounts } = useContext(CardAccountContext)
     const { user } = useContext(userContext)
+    const [isWithdrawModalShown, setIsWithdrawModalShown] = useState<boolean>(false)
 
     if (isLoading0 || isLoading1) return null
 
@@ -35,11 +37,12 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
                 <div className="flex justify-center items-center mt-4">
                     <button
                         onClick={() => {
-                            router.push('/dashboard/withdraw')
+                            setIsWithdrawModalShown(true)
                         }}
                         className="btn btn-primary">
                             Withdraw
                     </button>
+                    <WithdrawModal show={isWithdrawModalShown} onClose={() => setIsWithdrawModalShown(false)} />
                 </div>
             </div>
         )
