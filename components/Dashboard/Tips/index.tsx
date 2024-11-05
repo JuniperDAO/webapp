@@ -23,8 +23,7 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
 
     if (isLoading0 || isLoading1) return null
 
-    // Make your first deposit tip
-    if (totalCollateralUSD) {
+    if (totalCollateralUSD > 1) {
         return (
             <div className={styles.tips}>
                 <p className="spectral text-2xl text-center text-dark">Withdraw Your Assets</p>
@@ -52,15 +51,6 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
                     <p className="mt-2 max-w-sm mx-auto text-light leading-tight">
                         Effective Q4 2024, Juniper is in maintenance mode. We appreciate your support for the past two years! Stay tuned for our next project.
                     </p>
-                </div>
-                <div className="flex justify-center items-center mt-4">
-                    <button
-                        onClick={() => {
-                            router.push('/dashboard/withdraw')
-                        }}
-                        className="btn btn-primary">
-                            Withdraw
-                    </button>
                 </div>
             </div>
         )
