@@ -92,9 +92,11 @@ function UserProvider({ children }) {
     useEffect(() => {
         const isOnDashboardOrOnboarding = checkIsOnDashboardOrOnboarding(router.route)
         const isSigningIn = router.route.includes('signin')
+        const env = process.env.VERCEL_ENV
 
         log('current conditions', {
             IS_PRODUCTION,
+            env,
             zeroDevReady,
             privySmartAccountReady,
             isAuthenticated,
