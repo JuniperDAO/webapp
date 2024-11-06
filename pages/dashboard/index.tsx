@@ -113,11 +113,12 @@ export default function Home() {
 
                     <div className={styles.ctas}>
                         <button // was Link. links can't be disabled :)
-                            disabled={true}
+                            disabled={false}
                             // href="/dashboard/fund-account"
                             // scroll={false}
                             onClick={(ev) => {
                                 analytics.track('dashboardAddETHClicked')
+                                router.push('/dashboard/fund-account')
                             }}>
                             <div className={styles.cta}>
                                 <span className={styles.prim}>
