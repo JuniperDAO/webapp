@@ -10,7 +10,6 @@ import {
 } from '@/libs/constants'
 import { log } from '@/libs/util/log'
 import * as Sentry from '@sentry/nextjs'
-import { ExecutionsClient } from '@google-cloud/workflows'
 import { redlock } from '@/libs/redis'
 import { Intent } from '@prisma/client'
 
