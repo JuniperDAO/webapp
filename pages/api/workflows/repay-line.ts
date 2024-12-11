@@ -2,7 +2,6 @@ import { log } from '@/libs/util/log'
 import { AAVE_SUPPORTED_STABLES, safeStringify } from '@/libs/constants'
 import { analytics } from '@/libs/evkv'
 
-import { completeIntent } from '@/libs/workflows'
 import { getSessionSignerByOwnerId } from '@/libs/zerodev/server'
 import { sendMailchimpTemplate, MailchimpSlugs } from '@/libs/mailchimp'
 import { AaveV3Optimism } from '@bgd-labs/aave-address-book'
