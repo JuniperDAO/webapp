@@ -31,7 +31,7 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
                 <p className="spectral text-2xl text-center text-dark">Withdraw Your Assets</p>
                 <div className="flex justify-center items-center">
                     <p className="mt-2 max-w-sm mx-auto text-light leading-tight">
-                        Effective Q4 2024, Juniper is in maintenance mode. You can withdraw your funds by clicking the button below.
+                        Effective Q4 2024, Juniper is in maintenance mode. New deposits are disabled. You can withdraw your funds by clicking the button below. If you have any debt, you'll need to repay it before withdrawing your assets.
                     </p>
                 </div>
                 <div className="flex justify-center items-center mt-4">
