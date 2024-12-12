@@ -183,7 +183,7 @@ function Repaying() {
             className={`h-[500px] centered modal ${styles.container} ${inter.className}`}>
             <Loading />
             <p className="mt-3 text-center">
-                Deposit received! <br />
+                Deposit received! Repaying...<br />
             </p>
         </motion.div>
     )
@@ -266,7 +266,7 @@ function Success({ onClose }) {
             <div className={styles.content}>
                 <img width={200} height={200} src={staticURL('/images/otherCard.png')} alt="coinbase" />
 
-                <h3 className="text-2xl spectral mb-1 mt-auto md:mt-2">Repayment Scheduled</h3>
+                <h3 className="text-2xl spectral mb-1 mt-auto md:mt-2">Repayment Complete</h3>
 
                 <p>Your balance will be updated shortly.</p>
 
