@@ -20,7 +20,7 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
     const router = useRouter()
     const { totalCollateralUSD, isLoading: isLoading0 } = useContext(creditLineContext)
     const { isLoading: isLoading1, cardAccounts } = useContext(CardAccountContext)
-    const { user } = useContext(userContext)
+    const { user, smartWalletAddress } = useContext(userContext)
     const [isWithdrawModalShown, setIsWithdrawModalShown] = useState<boolean>(false)
 
     if (isLoading0 || isLoading1) return null
@@ -28,10 +28,11 @@ export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) =
     if (totalCollateralUSD > 1) {
         return (
             <div className={styles.tips}>
-                <p className="spectral text-2xl text-center text-dark">Withdraw Your Assets</p>
+                <p className="spectral text-2xl text-center text-dark">Juniper is in maintenance mode</p>
                 <div className="flex justify-center items-center">
                     <p className="mt-2 max-w-sm mx-auto text-light leading-tight">
-                        Effective Q4 2024, Juniper is in maintenance mode. New deposits are disabled. You can withdraw your funds by clicking the button below. If you have any debt, you'll need to repay it before withdrawing your assets.
+                        New deposits are disabled. You can withdraw your funds, but
+                        if you have any debt, you'll need to repay it first. Gas costs are no longer sponsored; you'll need to send in some small amount of raw ETH (probably less than 0.01) to your smart wallet to cover gas fees.
                     </p>
                 </div>
                 <div className="flex justify-center items-center mt-4">

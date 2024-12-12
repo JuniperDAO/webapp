@@ -11,7 +11,7 @@ import { safeStringify } from '../constants'
 
 const bundlersToRotateThrough: PaymasterAndBundlerProviders[] = [
     // 'STACKUP',
-    'ALCHEMY',
+    // 'ALCHEMY',
     'PIMLICO',
     // 'GELATO'
 ]
@@ -52,6 +52,7 @@ export class SessionKeySigner extends Signer {
             projectId: zeroDevProjectIdForChain(Network.optimism),
             sessionKeyParams,
             bundlerProvider: this.bundlerProvider,
+            usePaymaster: false,
             opts: {
                 paymasterConfig: {
                     policy: 'VERIFYING_PAYMASTER',
@@ -59,7 +60,7 @@ export class SessionKeySigner extends Signer {
                 },
             },
         })
-        this.log(`initialized with ${sessionKeyProvider}`)
+        this.log(`initialized with ${sessionKeyProvider}, project ID ${zeroDevProjectIdForChain(Network.optimism)}`)
 
         return sessionKeyProvider
     }
