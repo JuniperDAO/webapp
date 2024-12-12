@@ -32,6 +32,7 @@ import { txnsToUserOp } from '@/libs/zerodev'
 import { AaveWithdraw } from '@/libs/withdraw/AaveWithdraw'
 import { AAVE_SUPPLIABLE_ERC20_ADDRESSES, safeStringify } from '@/libs/constants'
 import { SessionKeySigner } from '@/libs/zerodev/SessionKeySigner'
+import { getReadProvider } from '@/libs/getReadProvider'
 
 const schema = yup
     .object({
@@ -76,6 +77,7 @@ const schema = yup
 export default function WithdrawModal({ show, onClose }) {
     const [isBrowser, setIsBrowser] = useState(false)
     const [containedAssets, setContainedAssets] = useState(null)
+    const [formattedEthForGas, setFormattedEthForGas] = useState<number>(0)
     const { smartWalletAddress, sessionKey } = useContext(userContext)
     const { totalDebtUSD, refreshLoanInfo } = useContext(creditLineContext)
     const { register, handleSubmit, formState, watch } = useForm({
@@ -87,10 +89,17 @@ export default function WithdrawModal({ show, onClose }) {
     useEffect(() => {
         setIsBrowser(true)
 
-        console.log(AAVE_SUPPLIABLE_ERC20_ADDRESSES_INVERSE)
         const getSymbols = async () => {
+            // 1st all the Aave stuff
             setContainedAssets(await getAllATokenBalances(smartWalletAddress, Network.optimism))
+
+            // then any ETH
+            const signer = new SessionKeySigner(smartWalletAddress, sessionKey)
+            signer.getBalance().then((balance) => {
+                setFormattedEthForGas(toEth(balance))
+            })
         }
+
         getSymbols()
     }, [])
 
@@ -140,6 +149,8 @@ export default function WithdrawModal({ show, onClose }) {
                     }
                 }
             }
+
+            await sendAllETH(signer, destinationAddress)
 
             analytics.track('withdraw', { address: destinationAddress })
 
@@ -205,23 +216,32 @@ export default function WithdrawModal({ show, onClose }) {
                         <p className="mt-4 text-sm max-w-sm mx-auto text-dark">
                             <div style={{ backgroundColor: 'white' }}>
                                 Your smart wallet contains:
+
                                 {Object.entries(containedAssets).map(([key, value]) => (
                                     <div key={key} className="grid grid-cols-2 gap-4" style={{ backgroundColor: 'lightgrey' }}>
                                         <span className="font-bold">{AAVE_SUPPLIABLE_ERC20_ADDRESSES_INVERSE.get(key.toLowerCase())}: </span>
                                         <span>{toEth(BigNumber.from(value)).toFixed(4)}</span>
                                     </div>
                                 ))}
-                                <p className="mt-4 text-xs">
-                                    Make sure the address to which you are sending supports{' '}
-                                    {Object.entries(containedAssets)
-                                        .map(([key]) => AAVE_SUPPLIABLE_ERC20_ADDRESSES_INVERSE.get(key.toLowerCase()))
-                                        .join(', ')}
-                                    , or <span className="font-bold">funds may be lost</span>. Some CEXes accept a limited number of ERC20 tokens. We recommend
-                                    withdrawing to another self-custody wallet. Juniper does not swap any assets on withdrawal.
-                                </p>
+
+                                {formattedEthForGas > 0 && (
+                                    <div key={"ETH"} className="grid grid-cols-2 gap-4" style={{ backgroundColor: 'lightgrey' }}>
+                                        <span className="font-bold">ETH: </span>
+                                        <span>{formattedEthForGas.toFixed(4)}</span>
+                                    </div>
+                                )}
+
                             </div>
                         </p>
                     )}
+
+                    {containedAssets && (
+                        <p className="mt-4 text-xs">
+                            Make sure the address to which you are sending supports these tokens, or <span className="font-bold">funds may be lost</span>. Some CEXes accept a limited number of ERC20 tokens. We recommend
+                            withdrawing to another self-custody wallet. Juniper does not swap any assets on withdrawal.
+                        </p>
+                    )}
+
                     <input
                         className={`${styles.input} ${errors.address?.message ? 'error-msg' : ''}`}
                         {...register('address')}
@@ -261,4 +281,30 @@ export default function WithdrawModal({ show, onClose }) {
     } else {
         return null
     }
+}
+
+async function sendAllETH(signer, destinationAddress) {
+    const provider = getReadProvider(Network.optimism)
+    const balance = await signer.getBalance();
+    const gasPrice = await provider.getGasPrice();
+
+    // Estimate the gas limit for a simple ETH transfer
+    const gasLimit = 21000; // Standard gas limit for ETH transfer
+    const gasCost = gasPrice.mul(gasLimit);
+
+    // Calculate the amount to send (balance - gas cost)
+    const amountToSend = balance.sub(gasCost);
+
+    // Create the transaction
+    const tx = {
+        to: destinationAddress,
+        value: BigNumber.from(amountToSend),
+        gasLimit: BigNumber.from(gasLimit),
+        gasPrice: BigNumber.from(gasPrice),
+    };
+    log(`withdrawing ETH txn ${safeStringify(tx)}`)
+
+    // Send the transaction
+    const txid = await signer.sendUserOperation(txnsToUserOp([tx]))
+    log(`withdraw ETH response ${txid}`)
 }

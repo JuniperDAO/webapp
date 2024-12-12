@@ -11,6 +11,8 @@ import { Crisp } from 'crisp-sdk-web'
 import Link from 'next/link'
 import { CardAccountContext } from '@/context/CardAccounts/CardAccounts'
 import WithdrawModal from '@/components/Modal/WithdrawModal'
+import { SessionKeySigner } from '@/libs/zerodev/SessionKeySigner'
+import { toEth } from '@/libs/util/toEth'
 
 type TipsSectionProps = {
     onAddAccountClick: () => void
@@ -19,19 +21,27 @@ type TipsSectionProps = {
 export const TipsSection: React.FC<TipsSectionProps> = ({ onAddAccountClick }) => {
     const router = useRouter()
     const { totalCollateralUSD, isLoading: isLoading0 } = useContext(creditLineContext)
+    const [formattedEthForGas, setFormattedEthForGas] = useState<number>(0)
     const { isLoading: isLoading1, cardAccounts } = useContext(CardAccountContext)
-    const { user, smartWalletAddress } = useContext(userContext)
+    const { user, smartWalletAddress, sessionKey } = useContext(userContext)
     const [isWithdrawModalShown, setIsWithdrawModalShown] = useState<boolean>(false)
 
-    if (isLoading0 || isLoading1) return null
+    // if (isLoading0 || isLoading1) return null
 
-    if (totalCollateralUSD > 1) {
+    useEffect(() => {
+        const signer = new SessionKeySigner(smartWalletAddress, sessionKey)
+        signer.getBalance().then((balance) => {
+            setFormattedEthForGas(toEth(balance))
+        })
+    }, [])
+
+    if (totalCollateralUSD > 0 || formattedEthForGas > 0) {
         return (
             <div className={styles.tips}>
                 <p className="spectral text-2xl text-center text-dark">Juniper is in maintenance mode</p>
                 <div className="flex justify-center items-center">
                     <p className="mt-2 max-w-sm mx-auto text-light leading-tight">
-                        New deposits are disabled. You can withdraw your funds, but
+                        You can withdraw your funds, but
                         if you have any debt, you'll need to repay it first. Gas costs are no longer sponsored; you'll need to send in some small amount of raw ETH (probably less than 0.01) to your smart wallet to cover gas fees.
                     </p>
                 </div>

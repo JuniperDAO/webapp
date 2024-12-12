@@ -47,11 +47,17 @@ export const getAllATokenBalances = async (address: string, chain: Network) => {
     const balances = {}
 
     for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
-        if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol)) {
-            const balance = await getERC20Balance(address, chain, info.A_TOKEN)
-            console.log(`Balance of ${symbol}: ${toEth(balance)}`)
-            if (balance.gt(0)) {
-                balances[info.UNDERLYING] = balance
+        if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol) || AAVE_SUPPORTED_STABLES.indexOf(symbol) !== -1) {
+            const aBalance = await getERC20Balance(address, chain, info.A_TOKEN)
+            console.log(`Balance of ${symbol} at Aave: ${toEth(aBalance)}`)
+            if (aBalance.gt(0)) {
+                balances[info.UNDERLYING] = aBalance
+            }
+
+            const uBalance = await getERC20Balance(address, chain, info.UNDERLYING)
+            console.log(`Balance of ${symbol} in wallet: ${toEth(uBalance)}`)
+            if (uBalance.gt(0)) {
+                balances[info.UNDERLYING] = aBalance.add(uBalance)
             }
         }
     }
