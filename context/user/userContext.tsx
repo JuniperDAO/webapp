@@ -143,12 +143,7 @@ function UserProvider({ children }) {
 
                     const thisSmartWallet = res.data?.user?.smartWallets?.find((wallet) => wallet.smartContractWalletAddress === address)
 
-                    if (!thisSmartWallet || new Date(thisSmartWallet.sessionKeyUpdatedAt) < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
-                        updateSessionSigner()
-                    } else {
-                        log(`Not updating session signer because last update was less than 24 hours ago (${thisSmartWallet.sessionKeyUpdatedAt})`)
-                        setSessionKey(thisSmartWallet.sessionKey)
-                    }
+                    updateSessionSigner()
 
                     analytics.identify(registered.id, {
                         did: registered.did,

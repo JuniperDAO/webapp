@@ -4,6 +4,7 @@ import { SessionKeyProvider, ECDSAProvider, constants as zeroDevConstants } from
 
 import { GET, POST } from '../request'
 import { ethers, PopulatedTransaction } from 'ethers'
+import { zeroAddress } from 'viem'
 import { LocalAccountSigner, UserOperationCallData } from '@alchemy/aa-core'
 import { SessionPermissions } from './SessionPermissions'
 import { SESSION_KEY_EXPIRATION_S, safeStringify } from '../constants'
@@ -64,9 +65,9 @@ export const createAndSignNewZeroDevSessionKey = async (addresses: string[], ecd
         defaultProvider: ecdsaProvider,
         sessionKey,
         sessionKeyData: {
-            // permissions: allPerms,
-            // TODO this isn't right! We need to set the permissions to the whitelist
-            paymaster: zeroDevConstants.oneAddress,
+            // permissions: allPerms, // TODO this isn't right! We need to set the permissions to the whitelist
+            // https://docs.zerodev.app/sdk/advanced/session-keys#paymaster
+            paymaster: zeroAddress,
 
             // until we have a better way to handle this, we will set the session key to expire
             // https://docs.zerodev.app/sdk/plugins/session-keys#validuntil

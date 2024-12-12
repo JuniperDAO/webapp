@@ -53,12 +53,12 @@ export class SessionKeySigner extends Signer {
             sessionKeyParams,
             bundlerProvider: this.bundlerProvider,
             usePaymaster: false,
-            opts: {
-                paymasterConfig: {
-                    policy: 'VERIFYING_PAYMASTER',
-                    paymasterProvider: this.bundlerProvider,
-                },
-            },
+            // opts: {
+            //     paymasterConfig: {
+            //         policy: 'VERIFYING_PAYMASTER',
+            //         paymasterProvider: this.bundlerProvider,
+            //     },
+            // },
         })
         this.log(`initialized with ${sessionKeyProvider}, project ID ${zeroDevProjectIdForChain(Network.optimism)}`)
 
@@ -80,6 +80,8 @@ export class SessionKeySigner extends Signer {
 
     async sendSingleUserOperation(userOp: any) {
         try {
+            userOp.paymasterAndData = '0x'
+
             this.log(`sendSingleUserOperation: ${JSON.stringify(userOp)}`)
 
             const res = await this.sessionKeyProvider.sendUserOperation(userOp)
