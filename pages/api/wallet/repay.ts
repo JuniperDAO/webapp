@@ -5,7 +5,6 @@ import { AAVE_SUPPORTED_STABLES, safeStringify } from '@/libs/constants'
 import { analytics } from '@/libs/evkv'
 
 import { getSessionSignerByOwnerId } from '@/libs/zerodev/server'
-import { sendMailchimpTemplate, MailchimpSlugs } from '@/libs/mailchimp'
 import { AaveV3Optimism } from '@bgd-labs/aave-address-book'
 import { AaveRepay } from '@/libs/repay/AaveRepay'
 import { bigMin, toEth } from '@/libs/util/toEth'
@@ -37,11 +36,6 @@ export default async (req, res) => {
         }
         const stableBalance = await getAllStableBalances(address, Network.optimism)
         log(`${address} has ${stableBalance} of stables and ${accountInfo.totalDebtWei} of debt`)
-
-        // sendMailchimpTemplate(user.email, MailchimpSlugs.RepayStarted, {
-        //     smartContractWalletAddress: address,
-        //     debtAmountUSD: toEth(accountInfo.totalDebtWei).toFixed(2),
-        // })
 
         analytics.track('repayLine', { address, stableBalance, ...accountInfo })
 
@@ -85,11 +79,6 @@ export default async (req, res) => {
                 log(`${address} ${symbol} have ${balance} of ${debt}, cannot repay`)
             }
         }
-
-        sendMailchimpTemplate(user.email, MailchimpSlugs.RepayCompleted, {
-            smartContractWalletAddress: address,
-            debtAmountUSD: toEth(accountInfo.totalDebtWei).toFixed(2),
-        })
     } else {
         res.status(400).json({
             error: true,
