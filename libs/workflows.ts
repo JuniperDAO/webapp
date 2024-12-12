@@ -10,7 +10,6 @@ import {
 } from '@/libs/constants'
 import { log } from '@/libs/util/log'
 import * as Sentry from '@sentry/nextjs'
-import { ExecutionsClient } from '@google-cloud/workflows'
 import { redlock } from '@/libs/redis'
 import { Intent } from '@prisma/client'
 
@@ -23,7 +22,7 @@ export async function executeIntent(workflow: string, ownerId: string, intentTyp
     // get ngrok, set that up
     // set DEFERRED_EXECUTION_BASE_URI = 'https://your-ngrok-id.ngrok.io'
     // gcloud workflows deploy httpPostRetry-${you, e.g. dave} --source ops/workflows/httpPostRetry.yaml
-    const executionsClient = new ExecutionsClient()
+    // const executionsClient = new ExecutionsClient()
     const url = `${DEFERRED_EXECUTION_BASE_URI}/api/workflows/${workflow}`
     const args = {
         maxRetries: IS_PRODUCTION ? 10 : 3,
@@ -48,15 +47,15 @@ export async function executeIntent(workflow: string, ownerId: string, intentTyp
     args.postData.intentId = intent.id
 
     try {
-        log(`Creating execution on ${DEFERRED_EXECUTION_WORKFLOW_NAME} with URL ${url} args: ${safeStringify(args)}`)
-        const createExecutionRes = await executionsClient.createExecution({
-            parent: executionsClient.workflowPath(GCP_PROJECT_ID, GCP_LOCATION, DEFERRED_EXECUTION_WORKFLOW_NAME),
-            execution: {
-                argument: JSON.stringify(args),
-            },
-        })
-        log(`Created execution on ${DEFERRED_EXECUTION_WORKFLOW_NAME}: ${safeStringify(createExecutionRes)}`)
-        return createExecutionRes
+        // log(`Creating execution on ${DEFERRED_EXECUTION_WORKFLOW_NAME} with URL ${url} args: ${safeStringify(args)}`)
+        // const createExecutionRes = await executionsClient.createExecution({
+        //     parent: executionsClient.workflowPath(GCP_PROJECT_ID, GCP_LOCATION, DEFERRED_EXECUTION_WORKFLOW_NAME),
+        //     execution: {
+        //         argument: JSON.stringify(args),
+        //     },
+        // })
+        // log(`Created execution on ${DEFERRED_EXECUTION_WORKFLOW_NAME}: ${safeStringify(createExecutionRes)}`)
+        // return createExecutionRes
     } catch (e) {
         Sentry.captureException(e)
         log(`Error executing workflow: ${e}`)

@@ -8,7 +8,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { userContext } from '@/context/user/userContext'
 import { useETHDepositTracker, useERC20DepositTracker } from '@/hooks/useDepositTracker'
 import { Network } from '@/libs/network/types'
-import { AAVE_SUPPORTED_STABLES, ONE_DOLLAR } from '@/libs/constants'
+import { AAVE_SUPPORTED_STABLES, ONE_DOLLAR, safeStringify } from '@/libs/constants'
 import { Loading } from '@/public/icons/StatusIcons'
 import { creditLineContext } from '@/context/CreditLine/creditLineContext'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -19,6 +19,17 @@ import { staticURL } from '@/libs/constants'
 import { POST } from '@/libs/request'
 import { AaveV3Optimism } from '@bgd-labs/aave-address-book'
 import { getERC20Balance } from '@/libs/util/getERC20Balance'
+
+import { log } from '@/libs/util/log'
+import { analytics } from '@/libs/evkv'
+
+import { AaveRepay } from '@/libs/repay/AaveRepay'
+import { bigMin } from '@/libs/util/toEth'
+import { txnsToUserOp } from '@/libs/zerodev'
+import { getAllStableBalances } from '@/libs/util/getERC20Balance'
+import { swapStablesForStable } from '@/libs/lineRepayment/swapERC20'
+import { AaveLoanInfo } from '@/libs/borrow/AaveLoanInfo'
+import { SessionKeySigner } from '@/libs/zerodev/SessionKeySigner'
 
 export default function RepayModal({ onClose, show }) {
     const [isBrowser, setIsBrowser] = useState(false)
@@ -48,7 +59,7 @@ export default function RepayModal({ onClose, show }) {
  * remains running in the background, unmounting cleans up the listener.
  */
 const ModalContent = ({ handleClose }) => {
-    const { user, smartWalletAddress } = useContext(userContext)
+    const { user, smartWalletAddress, sessionKey } = useContext(userContext)
     const { refreshLoanInfo } = useContext(creditLineContext)
 
     const [isSuccess, setIsSuccess] = useState(false)
@@ -83,7 +94,57 @@ const ModalContent = ({ handleClose }) => {
             setIsRepaying(true)
             setHasStartedRepay(true)
 
-            await POST(`/api/wallet/repay`)
+            const signer = new SessionKeySigner(smartWalletAddress, sessionKey)
+            const loanInfo = new AaveLoanInfo(smartWalletAddress)
+            const accountInfo = await loanInfo.getAccountInfoWei()
+            if (accountInfo.totalDebtWei.lte(0)) {
+                throw new Error(`${smartWalletAddress} has no debt to repay`)
+            }
+            const stableBalance = await getAllStableBalances(smartWalletAddress, Network.optimism)
+            log(`${smartWalletAddress} has ${stableBalance} of stables and ${accountInfo.totalDebtWei} of debt`)
+
+            analytics.track('repayLine', { smartWalletAddress, stableBalance, ...accountInfo })
+
+            // XXX no longer support ETH repayments?
+            // since we previously borrowed in Bridged USDC (e), and now use USDCn, we need to check each. Clear out the (e) debt first if possible. we only use variable debt, so V_TOKENs
+            for (const symbol of ['USDC', 'USDCn']) {
+                const asset = AaveV3Optimism.ASSETS[symbol]
+                const debt = await getERC20Balance(smartWalletAddress, Network.optimism, asset.V_TOKEN)
+
+                if (debt.lte(0)) {
+                    log(`${smartWalletAddress} no debt for ${symbol}`)
+                    continue
+                }
+
+                let balance = await getERC20Balance(smartWalletAddress, Network.optimism, asset.UNDERLYING)
+                log(`${smartWalletAddress} debt: ${symbol}: ${debt}, balance: ${balance}`)
+
+                if (balance.lt(debt)) {
+                    log(`${smartWalletAddress} swapping stables to get ${debt} of ${symbol} (have ${balance})`)
+                    // the debt can be much more than the available stable balance
+                    await swapStablesForStable(debt, signer, AAVE_SUPPORTED_STABLES, symbol)
+                    balance = await getERC20Balance(smartWalletAddress, Network.optimism, asset.UNDERLYING)
+                } else {
+                    log(`${smartWalletAddress} have ${balance} of ${symbol} to repay of ${debt} debt, no swap`)
+                }
+
+                // afaict AaveRepay isn't stateful, but we still create a new one each time
+                const aaveRepay = new AaveRepay(signer)
+                if (balance.gt(0)) {
+                    log(`${smartWalletAddress} ${symbol} have ${balance} of ${debt} to repay`)
+                    const { approvalTx, repayTx } = await aaveRepay.prepareRepay(asset.UNDERLYING, bigMin(balance, debt))
+
+                    const approvalResponse = await signer.sendUserOperation(txnsToUserOp([approvalTx])[0])
+                    log(`${smartWalletAddress} approval to repay ${symbol}: ${safeStringify(approvalResponse)}`)
+
+                    const repayResponse = await signer.sendUserOperation(txnsToUserOp([repayTx])[0])
+                    log(`${smartWalletAddress} repay response ${symbol}: ${safeStringify(repayResponse)}`)
+
+                    analytics.track('repayLineResponse', { approvalResponse, repayResponse })
+                } else {
+                    log(`${smartWalletAddress} ${symbol} have ${balance} of ${debt}, cannot repay`)
+                }
+            }
 
             setIsSuccess(true)
             setIsRepaying(false)
@@ -122,7 +183,7 @@ function Repaying() {
             className={`h-[500px] centered modal ${styles.container} ${inter.className}`}>
             <Loading />
             <p className="mt-3 text-center">
-                Deposit received! <br />
+                Deposit received! Repaying...<br />
             </p>
         </motion.div>
     )
@@ -205,7 +266,7 @@ function Success({ onClose }) {
             <div className={styles.content}>
                 <img width={200} height={200} src={staticURL('/images/otherCard.png')} alt="coinbase" />
 
-                <h3 className="text-2xl spectral mb-1 mt-auto md:mt-2">Repayment Scheduled</h3>
+                <h3 className="text-2xl spectral mb-1 mt-auto md:mt-2">Repayment Complete</h3>
 
                 <p>Your balance will be updated shortly.</p>
 
