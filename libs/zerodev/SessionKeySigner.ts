@@ -11,7 +11,7 @@ import { safeStringify } from '../constants'
 
 const bundlersToRotateThrough: PaymasterAndBundlerProviders[] = [
     // 'STACKUP',
-    'ALCHEMY',
+    // 'ALCHEMY',
     'PIMLICO',
     // 'GELATO'
 ]
@@ -52,14 +52,15 @@ export class SessionKeySigner extends Signer {
             projectId: zeroDevProjectIdForChain(Network.optimism),
             sessionKeyParams,
             bundlerProvider: this.bundlerProvider,
-            opts: {
-                paymasterConfig: {
-                    policy: 'VERIFYING_PAYMASTER',
-                    paymasterProvider: this.bundlerProvider,
-                },
-            },
+            usePaymaster: false,
+            // opts: {
+            //     paymasterConfig: {
+            //         policy: 'VERIFYING_PAYMASTER',
+            //         paymasterProvider: this.bundlerProvider,
+            //     },
+            // },
         })
-        this.log(`initialized with ${sessionKeyProvider}`)
+        this.log(`initialized with ${sessionKeyProvider}, project ID ${zeroDevProjectIdForChain(Network.optimism)}`)
 
         return sessionKeyProvider
     }
@@ -79,6 +80,8 @@ export class SessionKeySigner extends Signer {
 
     async sendSingleUserOperation(userOp: any) {
         try {
+            userOp.paymasterAndData = '0x'
+
             this.log(`sendSingleUserOperation: ${JSON.stringify(userOp)}`)
 
             const res = await this.sessionKeyProvider.sendUserOperation(userOp)

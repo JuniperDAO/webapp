@@ -17,8 +17,8 @@ export const INTENT_EXPIRATION_S = 6 * 3600
 
 export const ENTRYPOINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789'
 
-export const AAVE_SUPPLIABLE_ERC20_SYMBOLS = ['WETH', 'OP', 'WBTC', 'wstETH', 'AAVE', 'LINK', 'rETH']
 export const AAVE_SUPPORTED_STABLES = ['USDC', 'USDCn', 'USDT', 'DAI']
+export const AAVE_SUPPLIABLE_ERC20_SYMBOLS = ['WETH', 'OP', 'WBTC', 'wstETH', 'AAVE', 'LINK', 'rETH'].concat(AAVE_SUPPORTED_STABLES)
 
 // https://search.onaave.com/?q=op%20Beth
 export const AAVE_SUPPLIABLE_ERC20_ADDRESSES = new Map<string, string>()

@@ -73,7 +73,7 @@ const ModalContent = ({ handleClose }) => {
 
     // raw ETH detector
     const deps: any[] = deposits.slice()
-    deps.push(useETHDepositTracker(smartWalletAddress, Network.optimism, toWei('0'), true))
+    // deps.push(useETHDepositTracker(smartWalletAddress, Network.optimism, toWei('0'), true))
 
     // more dependencies
     deps.push(smartWalletAddress, isRepaying, hasStartedRepay)
@@ -86,10 +86,13 @@ const ModalContent = ({ handleClose }) => {
             const debtE = await getERC20Balance(smartWalletAddress, Network.optimism, AaveV3Optimism.ASSETS.USDC.V_TOKEN)
             const debtN = await getERC20Balance(smartWalletAddress, Network.optimism, AaveV3Optimism.ASSETS.USDCn.V_TOKEN)
 
-            const hasDeposited = deposits.some((deposit) => deposit.amount.gt(ONE_DOLLAR))
+            const hasDeposited = deposits.some((deposit) => deposit.amount.gte(0))
             const isReady = smartWalletAddress
 
-            if (!hasDeposited || !isReady) return
+            if (!hasDeposited || !isReady) {
+                log('no sufficient deposits')
+                return
+            }
 
             setIsRepaying(true)
             setHasStartedRepay(true)
@@ -192,8 +195,6 @@ function Repaying() {
 function WaitForRepayDeposit({ onClose, receiveAddress }) {
     const { ethPriceUSD } = useContext(AssetPricesContext)
     const { totalDebtUSD } = useContext(creditLineContext)
-    // account for slippage
-    const totalDebtUSDWithSlippage = Math.max(totalDebtUSD * 1.01, 1).toFixed(2)
 
     return (
         <motion.div
@@ -210,7 +211,7 @@ function WaitForRepayDeposit({ onClose, receiveAddress }) {
             </div>
             <div className={styles.content}>
                 <p className="mt-4 text-sm max-w-sm mx-auto text-dark">
-                    Send up to ${totalDebtUSDWithSlippage} USDC (bridged or native), USDT, or DAI to this address to repay. Send on the Optimism L2 network, or{' '}
+                    Send ${totalDebtUSD} USDC (bridged or native), USDT, or DAI to this address to repay. Send on the Optimism L2 network, or{' '}
                     <b>your funds will be lost</b>.
                 </p>
 
