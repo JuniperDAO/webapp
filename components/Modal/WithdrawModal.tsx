@@ -23,6 +23,16 @@ import { Network } from '@/libs/network/types'
 import { toEth } from '@/libs/util/toEth'
 import { AaveV3Optimism } from '@bgd-labs/aave-address-book'
 
+
+import { ERC20Send } from '@/libs/send/ERC20Send'
+import { getERC20Balance } from '@/libs/util/getERC20Balance'
+import { log } from '@/libs/util/log'
+import { txnsToUserOp } from '@/libs/zerodev'
+
+import { AaveWithdraw } from '@/libs/withdraw/AaveWithdraw'
+import { AAVE_SUPPLIABLE_ERC20_ADDRESSES, safeStringify } from '@/libs/constants'
+import { SessionKeySigner } from '@/libs/zerodev/SessionKeySigner'
+
 const schema = yup
     .object({
         address: yup
@@ -66,13 +76,13 @@ const schema = yup
 export default function WithdrawModal({ show, onClose }) {
     const [isBrowser, setIsBrowser] = useState(false)
     const [containedAssets, setContainedAssets] = useState(null)
-    const { smartWalletAddress } = useContext(userContext)
+    const { smartWalletAddress, sessionKey } = useContext(userContext)
     const { totalDebtUSD, refreshLoanInfo } = useContext(creditLineContext)
     const { register, handleSubmit, formState, watch } = useForm({
         resolver: yupResolver(schema),
     })
 
-    const address = watch(['address'])[0]
+    const destinationAddress = watch(['address'])[0]
 
     useEffect(() => {
         setIsBrowser(true)
@@ -96,11 +106,44 @@ export default function WithdrawModal({ show, onClose }) {
                 throw new Error(`You must repay your ${formatMoney(totalDebtUSD)} balance  before withdrawing.`)
             }
 
-            const res = await POST(`/api/wallet/withdraw`, { destinationAddress: address })
-            console.log('res', res)
-            analytics.track('withdraw', { address: address })
+            const signer = new SessionKeySigner(smartWalletAddress, sessionKey)
+            const address = await signer.getAddress()
+            const withdraw = new AaveWithdraw(signer)
 
-            toast.success(`Withdrawal to ${address} in progress.`)
+            for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
+                if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol)) {
+                    const balance = await getERC20Balance(address, Network.optimism, info.A_TOKEN)
+                    if (balance.gt(0)) {
+                        const preparedTxn = await withdraw.prepareWithdrawAll(symbol, info)
+                        if (preparedTxn) {
+                            const userOp = txnsToUserOp([preparedTxn])
+                            log(`Withdrawing ${toEth(balance)} ${symbol} from Aave...`)
+                            const wres = await signer.sendUserOperation(userOp)
+                            log(`Withdrawal tx hash: ${safeStringify(wres)}`)
+                        }
+                    }
+                }
+            }
+
+            const txids = {}
+            for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
+                if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol) || symbol === 'USDC' || symbol === 'USDCn') {
+                    const send = new ERC20Send(info.UNDERLYING, signer)
+                    const newBalance = await getERC20Balance(address, Network.optimism, info.UNDERLYING)
+                    if (newBalance.gt(0)) {
+                        const preparedSendTxn = await send.prepareSend(newBalance, destinationAddress)
+                        const txid = await signer.sendUserOperation(txnsToUserOp([preparedSendTxn]))
+                        log(`Sent ${symbol} to withdrawAddress ${destinationAddress} txid ${txid}`)
+                        txids[symbol] = txid
+                    } else {
+                        log(`No ${symbol} to send`)
+                    }
+                }
+            }
+
+            analytics.track('withdraw', { address: destinationAddress })
+
+            toast.success(`Withdrawal to ${destinationAddress} in progress.`)
 
             await refreshLoanInfo(smartWalletAddress)
 
@@ -111,7 +154,7 @@ export default function WithdrawModal({ show, onClose }) {
                 position: 'top-center',
             })
         }
-    }, [totalDebtUSD, address, smartWalletAddress])
+    }, [totalDebtUSD, destinationAddress, smartWalletAddress])
 
     const modalContent = show ? (
         <AnimatePresence mode="wait">
@@ -191,7 +234,7 @@ export default function WithdrawModal({ show, onClose }) {
                     <div className="flex flex-col gap-3 mt-auto md:mt-6">
                         <button
                             onClick={handleSubmit(onWithdraw)}
-                            disabled={isSubmitting || address?.length !== 42}
+                            disabled={isSubmitting || destinationAddress?.length !== 42}
                             className={`btn btn-danger ${isSubmitting ? 'btn-loading' : ''} `}>
                             {isSubmitting ? 'Withdrawing...' : 'Withdraw'}
                         </button>
