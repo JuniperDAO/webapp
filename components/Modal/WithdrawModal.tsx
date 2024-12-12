@@ -106,65 +106,58 @@ export default function WithdrawModal({ show, onClose }) {
     const { errors, isSubmitting } = formState
 
     const onWithdraw = useCallback(async () => {
-        try {
-            if (totalDebtUSD > 0) {
-                analytics.track('withdrawFailedDebt', {
-                    totalDebtUSD: totalDebtUSD,
-                })
-
-                throw new Error(`You must repay your ${formatMoney(totalDebtUSD)} balance  before withdrawing.`)
-            }
-
-            const signer = new SessionKeySigner(smartWalletAddress, sessionKey)
-            const address = await signer.getAddress()
-            const withdraw = new AaveWithdraw(signer)
-
-            for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
-                if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol)) {
-                    const balance = await getERC20Balance(address, Network.optimism, info.A_TOKEN)
-                    if (balance.gt(0)) {
-                        const preparedTxn = await withdraw.prepareWithdrawAll(symbol, info)
-                        if (preparedTxn) {
-                            const userOp = txnsToUserOp([preparedTxn])
-                            log(`Withdrawing ${toEth(balance)} ${symbol} from Aave...`)
-                            const wres = await signer.sendUserOperation(userOp)
-                            log(`Withdrawal tx hash: ${safeStringify(wres)}`)
-                        }
-                    }
-                }
-            }
-
-            const txids = {}
-            for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
-                if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol) || symbol === 'USDC' || symbol === 'USDCn') {
-                    const send = new ERC20Send(info.UNDERLYING, signer)
-                    const newBalance = await getERC20Balance(address, Network.optimism, info.UNDERLYING)
-                    if (newBalance.gt(0)) {
-                        const preparedSendTxn = await send.prepareSend(newBalance, destinationAddress)
-                        const txid = await signer.sendUserOperation(txnsToUserOp([preparedSendTxn]))
-                        log(`Sent ${symbol} to withdrawAddress ${destinationAddress} txid ${txid}`)
-                        txids[symbol] = txid
-                    } else {
-                        log(`No ${symbol} to send`)
-                    }
-                }
-            }
-
-            await sendAllETH(signer, destinationAddress)
-
-            analytics.track('withdraw', { address: destinationAddress })
-
-            toast.success(`Withdrawal to ${destinationAddress} in progress.`)
-
-            await refreshLoanInfo(smartWalletAddress)
-
-            onClose()
-        } catch (error) {
-            console.log(error)
-            toast.error(error.message, {
-                position: 'top-center',
+        if (totalDebtUSD > 0) {
+            analytics.track('withdrawFailedDebt', {
+                totalDebtUSD: totalDebtUSD,
             })
+
+            throw new Error(`You must repay your ${formatMoney(totalDebtUSD)} balance  before withdrawing.`)
         }
+
+        const signer = new SessionKeySigner(smartWalletAddress, sessionKey)
+        const address = await signer.getAddress()
+        const withdraw = new AaveWithdraw(signer)
+
+        for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
+            if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol)) {
+                const balance = await getERC20Balance(address, Network.optimism, info.A_TOKEN)
+                if (balance.gt(0)) {
+                    const preparedTxn = await withdraw.prepareWithdrawAll(symbol, info)
+                    if (preparedTxn) {
+                        const userOp = txnsToUserOp([preparedTxn])
+                        log(`Withdrawing ${toEth(balance)} ${symbol} from Aave...`)
+                        const wres = await signer.sendUserOperation(userOp)
+                        log(`Withdrawal tx hash: ${safeStringify(wres)}`)
+                    }
+                }
+            }
+        }
+
+        const txids = {}
+        for (const [symbol, info] of Object.entries(AaveV3Optimism.ASSETS)) {
+            if (AAVE_SUPPLIABLE_ERC20_ADDRESSES.get(symbol) || symbol === 'USDC' || symbol === 'USDCn') {
+                const send = new ERC20Send(info.UNDERLYING, signer)
+                const newBalance = await getERC20Balance(address, Network.optimism, info.UNDERLYING)
+                if (newBalance.gt(0)) {
+                    const preparedSendTxn = await send.prepareSend(newBalance, destinationAddress)
+                    const txid = await signer.sendUserOperation(txnsToUserOp([preparedSendTxn]))
+                    log(`Sent ${symbol} to withdrawAddress ${destinationAddress} txid ${txid}`)
+                    txids[symbol] = txid
+                } else {
+                    log(`No ${symbol} to send`)
+                }
+            }
+        }
+
+        await sendAllETH(signer, destinationAddress)
+
+        analytics.track('withdraw', { address: destinationAddress })
+
+        toast.success(`Withdrawal to ${destinationAddress} in progress.`)
+
+        await refreshLoanInfo(smartWalletAddress)
+
+        onClose()
     }, [totalDebtUSD, destinationAddress, smartWalletAddress])
 
     const modalContent = show ? (
@@ -290,18 +283,25 @@ async function sendAllETH(signer, destinationAddress) {
 
     // Estimate the gas limit for a simple ETH transfer
     const gasLimit = 21000; // Standard gas limit for ETH transfer
-    const gasCost = gasPrice.mul(gasLimit);
 
-    // Calculate the amount to send (balance - gas cost)
-    const amountToSend = balance.sub(gasCost);
+    const nonce = await provider.getTransactionCount(signer.smartWalletAddress);
+    const chainId = (await provider.getNetwork()).chainId;
 
     // Create the transaction
     const tx = {
         to: destinationAddress,
-        value: BigNumber.from(amountToSend),
+        value: BigNumber.from(balance.sub(gasPrice.mul(gasLimit))),
         gasLimit: BigNumber.from(gasLimit),
         gasPrice: BigNumber.from(gasPrice),
+        nonce: nonce,
+        chainId: chainId,
+        data: '0x', // No data for a simple ETH transfer
     };
+
+    const estimatedGasLimit = (await provider.estimateGas(tx)).mul(1000);
+    tx.gasLimit = estimatedGasLimit;
+    tx.value = BigNumber.from(balance.sub(gasPrice.mul(estimatedGasLimit)))
+
     log(`withdrawing ETH txn ${safeStringify(tx)}`)
 
     // Send the transaction
