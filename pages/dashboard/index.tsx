@@ -113,7 +113,7 @@ export default function Home() {
 
                     <div className={styles.ctas}>
                         <button // was Link. links can't be disabled :)
-                            disabled={false}
+                            disabled={true}
                             // href="/dashboard/fund-account"
                             // scroll={false}
                             onClick={(ev) => {
