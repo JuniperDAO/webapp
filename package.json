@@ -45,7 +45,7 @@
         "framer-motion": "^11.3.24",
         "ioredis": "^5.4.1",
         "md5": "^2.3.0",
-        "next": "^14.2.5",
+        "next": "^14.2.15",
         "opentelemetry-instrumentation-fetch-node": "^1.2.3",
         "plaid": "^26.0.0",
         "prisma": "^5.18.0",

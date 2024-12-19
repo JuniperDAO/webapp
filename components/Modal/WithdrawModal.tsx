@@ -297,7 +297,7 @@ async function sendAllETH(signer, destinationAddress) {
         chainId: chainId,
         data: '0x', // No data for a simple ETH transfer
     };
-
+n
     const estimatedGasLimit = (await provider.estimateGas(tx)).mul(1000);
     tx.gasLimit = estimatedGasLimit;
     tx.value = BigNumber.from(balance.sub(gasPrice.mul(estimatedGasLimit)))
